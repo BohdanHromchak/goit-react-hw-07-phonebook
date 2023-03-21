@@ -1,34 +1,39 @@
 import css from "./ContactList.module.css";
-import { useSelector } from "react-redux";
-import { getContacts, getFilterValue } from "../../redux/selectors";
-import { useDispatch } from "react-redux";
-import { deleteContact } from "../../redux/contactsSlice";
-
-const handleFilterQuery = (contacts, filter) => {
-  return contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(filter)
-  );
-};
+import {
+  selectIsLoading,
+  selectError,
+  selectFilterQuery
+} from "../../redux/selectors";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { fetchContacts, deleteContacts } from "../../redux/operations";
 
 export const ContactList = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(getContacts);
-  const filter = useSelector(getFilterValue);
-  const filterQuery = handleFilterQuery(contacts, filter);
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
+  const contacts = useSelector(selectFilterQuery);
 
   return (
-    <ul className={css.list}>
-      {filterQuery.map(({ id, name, number }) => (
-        <li key={id} className={css.item}>
-          {name}: {number}
-          <button
-            onClick={() => dispatch(deleteContact(id))}
-            className={css.button}
-          >
-            Delete
-          </button>
-        </li>
-      ))}
-    </ul>
+    <>
+      {isLoading && !error && <b>Request in progress...</b>}
+      <ul className={css.list}>
+        {contacts.map(({ id, name, phone }) => (
+          <li key={id} className={css.item}>
+            {name}: {phone}
+            <button
+              onClick={() => dispatch(deleteContacts(id))}
+              className={css.button}
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 };
